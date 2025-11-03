@@ -1,25 +1,72 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import LoginPhone from "./components/LoginPhone";
+import OTPEntry from "./components/OTPEntry";
+import RestaurantsList from "./components/RestaurentsList";
+import RestaurantDetail from "./components/RestaurentDetail";
+import '../src/style.css';
 
-function App() {
+
+export default function App() {
+  const [route, setRoute] = useState("login");
+  const [phone, setPhone] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [selected, setSelected] = useState(null);
+
+  useEffect(() => {
+    if (!isLoggedIn) setRoute("login");
+    else if (!selected) setRoute("list");
+    else setRoute("detail");
+  }, [isLoggedIn, selected]);
+
+  useEffect(() => {
+    
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {
+          
+        });
+      });
+    }
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      {route === "login" && (
+        <LoginPhone
+          onNext={(p) => {
+            setPhone(p);
+            setRoute("otp");
+          }}
+        />
+      )}
+
+      {route === "otp" && (
+        <OTPEntry
+          phone={phone}
+          onVerify={() => {
+            setIsLoggedIn(true);
+            setRoute("list");
+          }}
+          onBack={() => setRoute("login")}
+        />
+      )}
+
+      {route === "list" && (
+        <RestaurantsList
+          onSelect={(r) => {
+            setSelected(r);
+          }}
+        />
+      )}
+
+      {route === "detail" && selected && (
+        <RestaurantDetail
+          restaurant={selected}
+          onBack={() => setSelected(null)}
+        />
+      )}
+
+      <footer className="footer muted">Built for demo — Fastor overlay & PWA-ready.</footer>
     </div>
   );
 }
-
-export default App;
